@@ -1,16 +1,43 @@
 package main
 
 import (
+	"fmt"
+
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack"
 )
+
+func Virsh_CallCommands(command []string) ([]byte, error) {
+	// var err error
+	// var out []byte
+	command[0] = "virsh"
+	fmt.Println(command)
+	switch len(command) {
+	// case 0:
+	// 	return
+	case 1:
+		out, err := exec.Command(command[0]).CombinedOutput()
+		// fmt.Println(string(out))
+		return out, err
+	default:
+		out, err := exec.Command(command[0], command[1:]...).CombinedOutput()
+		// fmt.Println(string(out))
+		return out, err
+	}
+
+
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+}
 
 func UrlVerification(w http.ResponseWriter, body []byte) (error) {
 		var res *slackevents.ChallengeResponse
@@ -59,15 +86,22 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			command := message[1]
-			switch command {
-			case "ping":
-				if _, _, err := api.PostMessage(event.Channel, slack.MsgOptionText("pong", false)); err != nil {
-					log.Println(err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
+			out, err := Virsh_CallCommands(message)
+			if err != nil {
+				fmt.Println(err)
+				return
 			}
+			fmt.Println(string(out))
+
+			// command := message[1]
+			// switch command {
+			// case "ping":
+			if _, _, err := api.PostMessage(event.Channel, slack.MsgOptionText(string(out), false)); err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			// }
 		}
 	}
 }
