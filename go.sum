@@ -8,3 +8,5 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/slack-go/slack v0.7.1 h1:eM4NV8t5iGpEoVZy2C+J7QS1QoxNEgH3YgAH89hyKm0=
 github.com/slack-go/slack v0.7.1/go.mod h1:FGqNzJBmxIsZURAxh2a8D21AnOVvvXZvGligs4npPUM=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+libvirt.org/libvirt-go v6.8.0+incompatible h1:pgnzHl8yp/B5TERBT8+3/2Dh2xYD0Irt5iOGA4Pjn9w=
+libvirt.org/libvirt-go v6.8.0+incompatible/go.mod h1:CPoljLoiC2aEw+62g1rZXl2oXAJaNsrq4YCSmJOELek=

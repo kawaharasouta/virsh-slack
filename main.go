@@ -1,58 +1,33 @@
 package main
 
 import (
-	"fmt"
-
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 
-	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackevents"
+
+	"github.com/kawaharasouta/virsh-slack/virsh"
 )
 
-func Virsh_CallCommands(command []string) ([]byte, error) {
-	// var err error
-	// var out []byte
-	command[0] = "virsh"
-	fmt.Println(command)
-	switch len(command) {
-	// case 0:
-	// 	return
-	case 1:
-		out, err := exec.Command(command[0]).CombinedOutput()
-		// fmt.Println(string(out))
-		return out, err
-	default:
-		out, err := exec.Command(command[0], command[1:]...).CombinedOutput()
-		// fmt.Println(string(out))
-		return out, err
+func UrlVerification(w http.ResponseWriter, body []byte) error {
+	var res *slackevents.ChallengeResponse
+	if err := json.Unmarshal(body, &res); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return err
 	}
-
-
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-}
-
-func UrlVerification(w http.ResponseWriter, body []byte) (error) {
-		var res *slackevents.ChallengeResponse
-		if err := json.Unmarshal(body, &res); err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return err
-		}
-		w.Header().Set("Content-Type", "text/plain")
-		if _, err := w.Write([]byte(res.Challenge)); err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return err
-		}
-		return nil
+	w.Header().Set("Content-Type", "text/plain")
+	if _, err := w.Write([]byte(res.Challenge)); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return err
+	}
+	return nil
 }
 
 func StartHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +49,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	switch eventsAPIEvent.Type {
 	case slackevents.URLVerification:
 		if err := UrlVerification(w, body); err != nil {
-			log .Println(err)
+			log.Println(err)
 		}
 	case slackevents.CallbackEvent:
 		innerEvent := eventsAPIEvent.InnerEvent
@@ -86,17 +61,18 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			out, err := Virsh_CallCommands(message)
+			out, err := virsh.Virsh(message[1:])
+			// out, err := Virsh_Args(message)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
-			fmt.Println(string(out))
+			// fmt.Println(string(out))
 
 			// command := message[1]
 			// switch command {
 			// case "ping":
-			if _, _, err := api.PostMessage(event.Channel, slack.MsgOptionText(string(out), false)); err != nil {
+			if _, _, err := api.PostMessage(event.Channel, slack.MsgOptionText(out, false)); err != nil {
 				log.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -116,4 +92,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
