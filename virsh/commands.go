@@ -22,18 +22,6 @@ func help(args Args, conn *libvirt.Connect) (string, error) {
 	return "help", nil
 }
 
-func list(args Args, conn *libvirt.Connect) (string, error) {
-	doms, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
-	if err != nil {
-		return "", err
-	}
-	for _, dom := range doms {
-		name , err := dom.GetName()
-		return name, err
-	}
-	return "list", nil
-}
-
 func start(args Args, conn *libvirt.Connect) (string, error) {
 	return "start", nil
 }
@@ -43,14 +31,14 @@ func shutdown(args Args, conn *libvirt.Connect) (string, error) {
 }
 
 func Exec_Virsh(args Args) (string, error){
-	if f, ok := commands[args.sub_command]; ok {
+	if command, ok := commands[args.sub_command]; ok {
 		conn, err := libvirt.NewConnect("qemu:///system")
 		if err != nil {
 			log.Println(err)
 			return "", err
 		}
 		defer conn.Close()
-		out, err := f(args, conn)
+		out, err := command(args, conn)
 		return out, err
 	}
 	return "", nil
@@ -78,15 +66,6 @@ func Virsh(command []string) (string, error) {
 	out, err := Exec_Virsh(args)
 	return out, err
 }
-
-
-
-
-
-
-
-
-
 
 
 
